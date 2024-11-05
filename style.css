@@ -1,0 +1,46 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #87CEEB;
+}
+
+#gameArea {
+    position: relative;
+    width: 80vw;
+    height: 80vh;
+    background-color: #f0f0f0;
+    overflow: hidden;
+    border: 2px solid #333;
+}
+
+#slime {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: green;
+    border-radius: 50% 50% 60% 60%;
+}
+
+#obstacle {
+    position: absolute;
+    width: 100px;
+    height: 20px;
+    background-color: red;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#item {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: yellow;
+    border-radius: 50%;
+    top: 20%;
+    left: 30%;
+}

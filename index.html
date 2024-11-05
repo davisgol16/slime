@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Física 3D Ultra Realista - Slime</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Cena, câmera e renderizador
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Luz
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
+
+        // Geometria do slime
+        const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+        const slimeMaterial = new THREE.MeshStandardMaterial({
+            color: 0x00ff00,
+            transparent: true,
+            opacity: 0.8,
+            emissive: 0x00ff00,
+            emissiveIntensity: 0.5,
+        });
+        const slime = new THREE.Mesh(geometry, slimeMaterial);
+        scene.add(slime);
+
+        // Chão
+        const groundGeometry = new THREE.PlaneGeometry(10, 10);
+        const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = - Math.PI / 2;
+        ground.position.y = -1;
+        scene.add(ground);
+
+        // Configurações de física
+        let velocityY = 0; // Velocidade vertical do slime
+        const gravity = -0.02; // Aceleração da gravidade
+        const bounceFactor = 0.6; // Fator de quique
+        let slimeScaleY = 1; // Escala vertical do slime para simular deformação
+
+        // Animação
+        function animate() {
+            requestAnimationFrame(animate);
+            slime.position.y += velocityY; // Atualiza a posição vertical do slime
+            velocityY += gravity; // Aplica a gravidade
+
+            // Colisão com o chão
+            if (slime.position.y <= 0) {
+                slime.position.y = 0; // Coloca o slime no chão
+                velocityY *= -bounceFactor; // Inverte a velocidade para simular o quique
+                
+                // Simulação de deformação
+                slimeScaleY = Math.abs(velocityY) * 0.1 + 0.8; // Deformação ao quicar
+                slime.scale.set(1, slimeScaleY, 1); // Aplica a escala
+            } else {
+                slimeScaleY = Math.max(slimeScaleY - 0.01, 1); // Retorna à escala original
+                slime.scale.set(1, slimeScaleY, 1); // Aplica a escala
+            }
+
+            // Atualiza a renderização
+            renderer.render(scene, camera);
+        }
+
+        // Controlando a câmera
+        camera.position.z = 5;
+
+        // Redimensiona a cena ao mudar o tamanho da janela
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Movimento do slime ao arrastar
+        let isDragging = false;
+        
+        window.addEventListener('mousedown', () => {
+            isDragging = true;
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        window.addEventListener('mousemove', (event) => {
+            if (isDragging) {
+                // Calcula a nova posição com base no mouse
+                const mouse = new THREE.Vector2();
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects([ground]);
+
+                if (intersects.length > 0) {
+                    slime.position.x = intersects[0].point.x;
+                    slime.position.z = intersects[0].point.z;
+                    slime.position.y = 0.5; // Ajusta a altura do slime ao ser arrastado
+                }
+            }
+        });
+
+        animate(); // Inicia a animação
+    </script>
+</body>
+</html>
